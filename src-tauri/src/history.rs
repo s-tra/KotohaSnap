@@ -11,4 +11,7 @@ pub struct TranslationEntry {
     pub provider: String,
     #[serde(default)]
     pub model: String,
+    /// 生成済みサムネイルのパス（None の場合は image_path をフォールバック表示）
+    #[serde(default)]
+    pub thumbnail_path: Option<PathBuf>,
 }

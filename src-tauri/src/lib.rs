@@ -31,6 +31,8 @@ pub fn run() {
             if let Some(window) = app.get_webview_window("main") {
                 let _ = window.set_title(&format!("vrc-translator v{version}"));
             }
+            // 1日以上アクセスされていないサムネイルを削除
+            image_utils::cleanup_old_thumbnails(1);
             watcher::spawn_watcher(app.handle().clone());
             Ok(())
         })

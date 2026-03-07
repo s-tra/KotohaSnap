@@ -173,12 +173,18 @@ async fn process_screenshot(
         osc::send_to_chatbox(&osc_config, &osc_text)?;
     }
 
+    // サムネイル生成（失敗してもエントリ自体は作成する）
+    let thumbnail_path = crate::image_utils::generate_thumbnail(path.clone()).await
+        .map_err(|e| tracing::warn!("サムネイル生成に失敗しました: {e}"))
+        .ok();
+
     let entry = TranslationEntry {
         timestamp: Utc::now(),
         image_path: path,
         translated_text,
         provider: translator.name().to_string(),
         model: translator.model_name().to_string(),
+        thumbnail_path,
     };
     state.push_history(entry.clone());
     app_handle.emit("translation_done", &entry)?;

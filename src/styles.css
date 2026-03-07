@@ -144,9 +144,6 @@ body {
   flex: 1;
   overflow-y: auto;
   padding: var(--gap);
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
 }
 
 .empty-state {
@@ -165,9 +162,8 @@ body {
   display: flex;
   flex-direction: column;
   gap: 4px;
-  animation: slideIn 0.2s ease;
+  margin-bottom: 8px;
 }
-@keyframes slideIn { from { opacity:0; transform:translateY(-4px); } to { opacity:1; transform:none; } }
 
 .log-entry-meta {
   display: flex;

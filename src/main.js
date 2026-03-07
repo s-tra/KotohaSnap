@@ -15,6 +15,167 @@ const logList        = document.getElementById('log-list');
 const errorBar       = document.getElementById('error-bar');
 
 // ---------------------------------------------------------------------------
+// VirtualList — 可変高アイテムの仮想スクロール
+//
+// DOM 構造（logList の子）:
+//   [emptyMsg]        ← 空状態メッセージ（件数0のときのみ表示）
+//   [topPad]          ← 上スペーサー（レンダリング外アイテムの高さ分）
+//   [rendered items]  ← 表示範囲内のアイテムのみ
+//   [botPad]          ← 下スペーサー
+// ---------------------------------------------------------------------------
+class VirtualList {
+  #container; #build;
+  #items = []; #heights = [];
+  #nodes = new Map();   // index → DOM node
+  #topPad; #botPad;
+  #EST = 110;  // 未測定アイテムの推定高さ (px)
+  #GAP = 8;    // アイテム間ギャップ (margin-bottom と同値)
+  #BUF = 5;    // ビューポート上下に余分にレンダリングするアイテム数
+  #pending = false;
+
+  constructor(container, buildFn) {
+    this.#container = container;
+    this.#build = buildFn;
+
+    this.#topPad = document.createElement('div');
+    this.#botPad = document.createElement('div');
+    container.appendChild(this.#topPad);
+    container.appendChild(this.#botPad);
+
+    container.addEventListener('scroll', () => this.#schedule(), { passive: true });
+    new ResizeObserver(() => this.#schedule()).observe(container);
+  }
+
+  /** 先頭に1件追加（新着翻訳） */
+  prepend(item) {
+    this.#items.unshift(item);
+    this.#heights.unshift(0);
+    // 既存ノードのインデックスを +1 シフト
+    const m = new Map();
+    for (const [i, n] of this.#nodes) m.set(i + 1, n);
+    this.#nodes = m;
+    // スクロール位置がトップ以外の場合、新アイテム分だけ補正してビューを安定させる
+    if (this.#container.scrollTop > 0) {
+      this.#container.scrollTop += this.#EST + this.#GAP;
+    }
+    this.#render();
+  }
+
+  /** 全件一括セット（初期ロード） */
+  setAll(items) {
+    for (const [, n] of this.#nodes) n.remove();
+    this.#nodes.clear();
+    this.#items = [...items];
+    this.#heights = new Array(items.length).fill(0);
+    this.#container.scrollTop = 0;
+    this.#render();
+  }
+
+  /** 全件クリア */
+  clear() {
+    for (const [, n] of this.#nodes) n.remove();
+    this.#nodes.clear();
+    this.#items = [];
+    this.#heights = [];
+    this.#topPad.style.height = '0';
+    this.#botPad.style.height = '0';
+  }
+
+  get count() { return this.#items.length; }
+
+  // アイテム i が占める垂直スペース（高さ + ギャップ）
+  #h(i) { return (this.#heights[i] || this.#EST) + this.#GAP; }
+
+  // インデックス 0 からアイテム i の直前までの累積高さ
+  #cumTop(i) {
+    let t = 0;
+    for (let j = 0; j < i; j++) t += this.#h(j);
+    return t;
+  }
+
+  #schedule() {
+    if (this.#pending) return;
+    this.#pending = true;
+    requestAnimationFrame(() => { this.#pending = false; this.#render(); });
+  }
+
+  #render() {
+    const n = this.#items.length;
+    if (n === 0) {
+      this.#topPad.style.height = '0';
+      this.#botPad.style.height = '0';
+      return;
+    }
+
+    const scrollTop = this.#container.scrollTop;
+    const vh        = this.#container.clientHeight;
+
+    // ビューポートと交差するインデックス範囲を特定
+    let start = n, end = -1, acc = 0;
+    for (let i = 0; i < n; i++) {
+      const h = this.#h(i);
+      if (acc + h > scrollTop && start === n) start = i;
+      if (acc < scrollTop + vh) end = i;
+      acc += h;
+    }
+    if (end === -1) { start = 0; end = Math.min(n - 1, this.#BUF * 2); }
+    start = Math.max(0, start - this.#BUF);
+    end   = Math.min(n - 1, end + this.#BUF);
+
+    // 範囲外のノードを DOM から除去
+    for (const [i, node] of [...this.#nodes]) {
+      if (i < start || i > end) { node.remove(); this.#nodes.delete(i); }
+    }
+
+    // 範囲内で未レンダリングのノードを生成・挿入
+    for (let i = start; i <= end; i++) {
+      if (this.#nodes.has(i)) continue;
+      const node = this.#build(this.#items[i]);
+      this.#nodes.set(i, node);
+
+      // 挿入位置: i より大きいインデックスの中で最小のノードの直前
+      let insertBefore = this.#botPad;
+      let minJ = Infinity;
+      for (const [j, jNode] of this.#nodes) {
+        if (j > i && j < minJ) { minJ = j; insertBefore = jNode; }
+      }
+      this.#container.insertBefore(node, insertBefore);
+
+      // レイアウト後に高さを記録
+      if (node.offsetHeight > 0) this.#heights[i] = node.offsetHeight;
+    }
+
+    // レンダリング済みノードの実高さでキャッシュを更新
+    for (const [i, node] of this.#nodes) {
+      const h = node.offsetHeight;
+      if (h > 0) this.#heights[i] = h;
+    }
+
+    // スペーサーの高さを更新
+    const topH = this.#cumTop(start);
+    const botH = Math.max(0, this.#cumTop(n) - this.#cumTop(end + 1) - this.#GAP);
+    this.#topPad.style.height = topH + 'px';
+    this.#botPad.style.height = botH + 'px';
+  }
+}
+
+// ---------------------------------------------------------------------------
+// 空状態メッセージ
+// ---------------------------------------------------------------------------
+const emptyMsg = (() => {
+  const p = document.createElement('p');
+  p.className = 'empty-state';
+  p.textContent = '翻訳ログはまだありません';
+  logList.prepend(p);  // topPad より前に置く
+  return p;
+})();
+
+const showEmpty = () => { emptyMsg.hidden = false; };
+const hideEmpty = () => { emptyMsg.hidden = true;  };
+
+const vlist = new VirtualList(logList, buildLogEntry);
+
+// ---------------------------------------------------------------------------
 // 初期状態の読み込み
 // ---------------------------------------------------------------------------
 async function init() {
@@ -30,11 +191,11 @@ async function init() {
 
   try {
     const entries = await invoke('get_history');
-    logList.innerHTML = '';
     if (entries.length === 0) {
-      appendEmptyState();
+      showEmpty();
     } else {
-      entries.forEach(appendLogEntry);
+      hideEmpty();
+      vlist.setAll(entries);
     }
   } catch (e) {
     showError(`履歴の読み込みに失敗しました: ${e}`);
@@ -110,11 +271,11 @@ oscToggleBtn.addEventListener('click', async () => {
 // ---------------------------------------------------------------------------
 // About ウィンドウを開く
 // ---------------------------------------------------------------------------
-aboutBtn.addEventListener("click", async () => {
+aboutBtn.addEventListener('click', async () => {
   try {
-    await invoke("open_about");
+    await invoke('open_about');
   } catch (e) {
-    showError("About 画面を開けませんでした: " + e);
+    showError('About 画面を開けませんでした: ' + e);
   }
 });
 
@@ -135,15 +296,15 @@ settingsBtn.addEventListener('click', async () => {
 clearBtn.addEventListener('click', async () => {
   try {
     await invoke('clear_history');
-    logList.innerHTML = '';
-    appendEmptyState();
+    vlist.clear();
+    showEmpty();
   } catch (e) {
     showError(`クリア失敗: ${e}`);
   }
 });
 
 // ---------------------------------------------------------------------------
-// サムネイルクリックで画像を開く
+// サムネイルクリックで画像を開く（イベント委譲）
 // ---------------------------------------------------------------------------
 logList.addEventListener('click', (e) => {
   const thumb = e.target.closest('.log-entry-thumb');
@@ -156,10 +317,8 @@ logList.addEventListener('click', (e) => {
 // リアルタイムイベント
 // ---------------------------------------------------------------------------
 listen('translation_done', (event) => {
-  const entry = event.payload;
-  const empty = logList.querySelector('.empty-state');
-  if (empty) empty.remove();
-  logList.insertBefore(buildLogEntry(entry), logList.firstChild);
+  hideEmpty();
+  vlist.prepend(event.payload);
   hideError();
   playNotification();
 });
@@ -168,7 +327,6 @@ listen('watcher_error', (event) => {
   showError(event.payload);
 });
 
-// 設定保存時に OSC・サウンド状態を同期、エラーバーをリセット
 listen('config_saved', async () => {
   hideError();
   try {
@@ -185,7 +343,7 @@ function buildLogEntry(entry) {
   const filename = entry.image_path.split(/[\\/]/).pop();
   const time     = new Date(entry.timestamp).toLocaleTimeString('ja-JP');
   const model    = entry.model || '';
-  const imgSrc   = convertFileSrc(entry.image_path);
+  const imgSrc   = convertFileSrc(entry.thumbnail_path ?? entry.image_path);
 
   const el = document.createElement('div');
   el.className = 'log-entry';
@@ -202,17 +360,6 @@ function buildLogEntry(entry) {
     </div>
   `;
   return el;
-}
-
-function appendLogEntry(entry) {
-  logList.appendChild(buildLogEntry(entry));
-}
-
-function appendEmptyState() {
-  const p = document.createElement('p');
-  p.className = 'empty-state';
-  p.textContent = '翻訳ログはまだありません';
-  logList.appendChild(p);
 }
 
 // ---------------------------------------------------------------------------
