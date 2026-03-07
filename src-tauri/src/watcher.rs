@@ -161,6 +161,7 @@ async fn process_screenshot(
     let translator = state.get_translator();
 
     tracing::info!("翻訳開始: {}", path.display());
+    let _ = app_handle.emit("translation_start", path.to_string_lossy().as_ref());
     let translated_text = translator.translate(&path, &prompt).await?;
     tracing::info!("翻訳完了: {:?}", translated_text);
 

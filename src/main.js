@@ -314,9 +314,66 @@ logList.addEventListener('click', (e) => {
 });
 
 // ---------------------------------------------------------------------------
+// 翻訳中プレースホルダー
+// ---------------------------------------------------------------------------
+let pendingCount = 0;
+let placeholderEl = null;
+
+function buildPlaceholderEntry(imagePath) {
+  const filename = imagePath.split(/[\\/]/).pop();
+  const el = document.createElement('div');
+  el.className = 'log-entry log-entry-pending';
+  el.innerHTML = `
+    <div class="log-entry-meta">
+      <span class="log-entry-file" title="${escHtml(imagePath)}">${escHtml(filename)}</span>
+    </div>
+    <div class="pending-body">
+      <span class="spinner"></span>
+      <span class="pending-label">翻訳中...</span>
+    </div>
+  `;
+  return el;
+}
+
+function showPlaceholder(imagePath) {
+  pendingCount++;
+  if (!placeholderEl) {
+    placeholderEl = buildPlaceholderEntry(imagePath);
+    logList.insertBefore(placeholderEl, emptyMsg.nextSibling);
+  }
+  const label = placeholderEl.querySelector('.pending-label');
+  label.textContent = pendingCount > 1 ? `翻訳中... (${pendingCount}件)` : '翻訳中...';
+  hideEmpty();
+}
+
+function hidePlaceholder() {
+  pendingCount = Math.max(0, pendingCount - 1);
+  if (pendingCount === 0 && placeholderEl) {
+    placeholderEl.remove();
+    placeholderEl = null;
+  } else if (pendingCount > 0 && placeholderEl) {
+    const label = placeholderEl.querySelector('.pending-label');
+    label.textContent = `翻訳中... (${pendingCount}件)`;
+  }
+}
+
+function resetPlaceholder() {
+  pendingCount = 0;
+  if (placeholderEl) {
+    placeholderEl.remove();
+    placeholderEl = null;
+  }
+}
+
+// ---------------------------------------------------------------------------
 // リアルタイムイベント
 // ---------------------------------------------------------------------------
+listen('translation_start', (event) => {
+  showPlaceholder(event.payload);
+});
+
 listen('translation_done', (event) => {
+  hidePlaceholder();
   hideEmpty();
   vlist.prepend(event.payload);
   hideError();
@@ -324,6 +381,8 @@ listen('translation_done', (event) => {
 });
 
 listen('watcher_error', (event) => {
+  resetPlaceholder();
+  if (vlist.count === 0) showEmpty();
   showError(event.payload);
 });
 

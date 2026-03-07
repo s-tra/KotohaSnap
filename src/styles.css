@@ -216,6 +216,33 @@ body {
 .log-entry-thumb:hover { opacity: 0.8; }
 .log-entry-thumb[src=""] { display: none; }
 
+/* 翻訳中プレースホルダー */
+.log-entry-pending {
+  border-style: dashed;
+  opacity: 0.8;
+}
+
+.pending-body {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--muted);
+  font-size: 12px;
+  padding: 2px 0;
+}
+
+.spinner {
+  flex-shrink: 0;
+  width: 13px;
+  height: 13px;
+  border: 2px solid var(--border);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
 /* Error Bar */
 .error-bar {
   padding: 8px 14px;
