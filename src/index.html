@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>VRC Translator</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="app">
+
+    <!-- ヘッダー -->
+    <header class="header">
+      <h1 class="app-title">VRC Translator</h1>
+      <div class="header-controls">
+        <div class="toggle-group">
+          <span class="toggle-group-label">翻訳</span>
+          <span class="toggle-label" id="toggle-label">OFF</span>
+          <button class="toggle-btn" id="toggle-btn" aria-pressed="false" title="翻訳 ON/OFF">
+            <span class="toggle-track"><span class="toggle-thumb"></span></span>
+          </button>
+        </div>
+        <div class="toggle-group">
+          <span class="toggle-group-label">OSC</span>
+          <span class="toggle-label" id="osc-toggle-label">OFF</span>
+          <button class="toggle-btn" id="osc-toggle-btn" aria-pressed="false" title="OSC 送信 ON/OFF">
+            <span class="toggle-track"><span class="toggle-thumb"></span></span>
+          </button>
+        </div>
+        <button class="btn btn-secondary btn-sm" id="settings-btn">設定</button>
+      </div>
+    </header>
+
+    <!-- ログパネル -->
+    <section class="log-panel">
+      <div class="log-header">
+        <h2>翻訳ログ</h2>
+        <button class="btn btn-danger btn-sm" id="clear-btn">クリア</button>
+      </div>
+
+      <div class="log-list" id="log-list">
+        <p class="empty-state">翻訳ログはまだありません</p>
+      </div>
+
+      <div class="error-bar hidden" id="error-bar"></div>
+    </section>
+
+  </div><!-- .app -->
+
+  <script type="module" src="main.js"></script>
+</body>
+</html>

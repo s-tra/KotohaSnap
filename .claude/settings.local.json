@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(cargo tauri:*)",
+      "Bash(cargo check:*)",
+      "Bash(rustc:*)",
+      "Bash(cargo update:*)",
+      "Bash(cargo build:*)"
+    ]
+  }
+}
