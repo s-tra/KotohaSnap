@@ -43,6 +43,8 @@ pub struct ProviderModels {
     #[serde(default)]
     pub groq: String,
     #[serde(default)]
+    pub google: String,
+    #[serde(default)]
     pub custom: String,
 }
 
@@ -54,6 +56,8 @@ pub struct ApiKeys {
     pub openai: String,
     #[serde(default)]
     pub groq: String,
+    #[serde(default)]
+    pub google: String,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]

@@ -13,9 +13,11 @@ const customModelsUrl   = document.getElementById('custom-models-url');
 const keyAnthropic      = document.getElementById('key-anthropic');
 const keyOpenai         = document.getElementById('key-openai');
 const keyGroq           = document.getElementById('key-groq');
+const keyGoogle         = document.getElementById('key-google');
 const keyAnthropicRow   = document.getElementById('key-anthropic-row');
 const keyOpenaiRow      = document.getElementById('key-openai-row');
 const keyGroqRow        = document.getElementById('key-groq-row');
+const keyGoogleRow      = document.getElementById('key-google-row');
 const modelInput        = document.getElementById('model-input');
 const modelList         = document.getElementById('model-list');
 const modelHint         = document.getElementById('model-hint');
@@ -36,7 +38,7 @@ const saveStatus        = document.getElementById('save-status');
 let currentOscEnabled = true;
 
 // プロバイダごとのモデル値（切り替え時に保持）
-const providerModels = { anthropic: '', openai: '', groq: '', custom: '' };
+const providerModels = { anthropic: '', openai: '', groq: '', google: '', custom: '' };
 let currentProvider = 'anthropic';
 
 // プロバイダごとのデフォルトモデル（ヒント表示用）
@@ -44,6 +46,7 @@ const DEFAULT_MODELS = {
   anthropic: 'claude-haiku-4-5-20251001',
   openai:    'gpt-4o',
   groq:      'meta-llama/llama-4-scout-17b-16e-instruct',
+  google:    'gemini-2.5-flash',
   custom:    '',
 };
 
@@ -63,6 +66,7 @@ function onProviderChange() {
   keyAnthropicRow.style.display = currentProvider === 'anthropic' ? '' : 'none';
   keyOpenaiRow.style.display    = currentProvider === 'openai'    ? '' : 'none';
   keyGroqRow.style.display      = currentProvider === 'groq'      ? '' : 'none';
+  keyGoogleRow.style.display    = currentProvider === 'google'    ? '' : 'none';
 
   // 該当プロバイダのモデル値をロード
   modelInput.value = providerModels[currentProvider];
@@ -89,11 +93,13 @@ async function loadConfig() {
     providerModels.anthropic = config.models?.anthropic ?? '';
     providerModels.openai    = config.models?.openai    ?? '';
     providerModels.groq      = config.models?.groq      ?? '';
+    providerModels.google    = config.models?.google    ?? '';
     providerModels.custom    = config.models?.custom    ?? '';
 
     keyAnthropic.value       = config.api_keys?.anthropic ?? '';
     keyOpenai.value          = config.api_keys?.openai    ?? '';
     keyGroq.value            = config.api_keys?.groq      ?? '';
+    keyGoogle.value          = config.api_keys?.google    ?? '';
     customDisplayName.value  = config.custom_provider?.display_name ?? '';
     customApiUrl.value       = config.custom_provider?.api_url      ?? '';
     customApiKey.value       = config.custom_provider?.api_key      ?? '';
@@ -130,6 +136,7 @@ function collectConfig() {
       anthropic: keyAnthropic.value,
       openai:    keyOpenai.value,
       groq:      keyGroq.value,
+      google:    keyGoogle.value,
     },
     custom_provider: {
       display_name: customDisplayName.value.trim(),
@@ -162,7 +169,7 @@ fetchModelsBtn.addEventListener('click', async () => {
   const provider = providerSel.value;
   const apiKey = provider === 'custom'
     ? customApiKey.value
-    : { anthropic: keyAnthropic.value, openai: keyOpenai.value, groq: keyGroq.value }[provider] ?? '';
+    : { anthropic: keyAnthropic.value, openai: keyOpenai.value, groq: keyGroq.value, google: keyGoogle.value }[provider] ?? '';
   const modelsUrl = provider === 'custom' ? customModelsUrl.value.trim() : null;
 
   try {
@@ -182,7 +189,7 @@ fetchModelsBtn.addEventListener('click', async () => {
     showSaveStatus(`モデル取得失敗: ${e}`, 'error');
   } finally {
     fetchModelsBtn.disabled = false;
-    fetchModelsBtn.textContent = '取得';
+    fetchModelsBtn.textContent = 'モデルを取得';
   }
 });
 

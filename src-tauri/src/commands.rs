@@ -124,6 +124,7 @@ pub async fn fetch_models(
         "anthropic" => fetch_anthropic_models(&api_key).await,
         "openai"    => fetch_openai_compat_models("https://api.openai.com/v1/models", &api_key).await,
         "groq"      => fetch_openai_compat_models("https://api.groq.com/openai/v1/models", &api_key).await,
+        "google"    => fetch_google_models(&api_key).await,
         "custom"    => {
             let url = models_url
                 .filter(|u| !u.is_empty())
@@ -213,6 +214,44 @@ async fn fetch_anthropic_models(api_key: &str) -> Result<Vec<String>, String> {
 
     let parsed: ModelsResponse = resp.json().await.map_err(|e| e.to_string())?;
     let mut ids: Vec<String> = parsed.data.into_iter().map(|m| m.id).collect();
+    ids.sort();
+    Ok(ids)
+}
+
+/// Google Gemini モデル一覧（GET /v1beta/models?key=...）
+async fn fetch_google_models(api_key: &str) -> Result<Vec<String>, String> {
+    if api_key.is_empty() {
+        return Err("API キーが入力されていません".to_string());
+    }
+
+    #[derive(Deserialize)]
+    struct GoogleModelsResponse {
+        models: Vec<GoogleModelInfo>,
+    }
+    #[derive(Deserialize)]
+    struct GoogleModelInfo {
+        name: String,
+    }
+
+    let url = format!(
+        "https://generativelanguage.googleapis.com/v1beta/models?key={}",
+        api_key
+    );
+    let client = reqwest::Client::new();
+    let resp = client.get(&url).send().await.map_err(|e| e.to_string())?;
+
+    if !resp.status().is_success() {
+        let body = resp.text().await.unwrap_or_default();
+        return Err(format!("Google モデル取得エラー: {}", body));
+    }
+
+    let parsed: GoogleModelsResponse = resp.json().await.map_err(|e| e.to_string())?;
+    // "models/gemini-xxx" -> "gemini-xxx"
+    let mut ids: Vec<String> = parsed.models
+        .into_iter()
+        .map(|m| m.name.trim_start_matches("models/").to_string())
+        .filter(|id| id.starts_with("gemini-"))
+        .collect();
     ids.sort();
     Ok(ids)
 }

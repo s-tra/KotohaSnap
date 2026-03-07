@@ -4,6 +4,7 @@ use async_trait::async_trait;
 
 pub mod anthropic;
 pub mod custom;
+pub mod google;
 pub mod groq;
 pub mod openai;
 
@@ -29,8 +30,9 @@ pub fn build_translator(config: &crate::config::Config) -> Arc<dyn Translator> {
     let models = &config.models;
 
     match config.provider.as_str() {
-        "openai" => Arc::new(openai::OpenAITranslator::new(&config.api_keys.openai, &models.openai)),
-        "groq"   => Arc::new(groq::GroqTranslator::new(&config.api_keys.groq, &models.groq)),
+        "openai"  => Arc::new(openai::OpenAITranslator::new(&config.api_keys.openai, &models.openai)),
+        "groq"    => Arc::new(groq::GroqTranslator::new(&config.api_keys.groq, &models.groq)),
+        "google"  => Arc::new(google::GoogleTranslator::new(&config.api_keys.google, &models.google)),
         "custom" => {
             let cp = &config.custom_provider;
             Arc::new(custom::CustomTranslator::new(
