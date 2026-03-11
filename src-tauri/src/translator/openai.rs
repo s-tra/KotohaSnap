@@ -1,4 +1,5 @@
 use std::path::Path;
+use std::time::Duration;
 use anyhow::{anyhow, Context, Result};
 use async_trait::async_trait;
 use base64::Engine as _;
@@ -6,8 +7,10 @@ use serde::{Deserialize, Serialize};
 use super::Translator;
 use crate::image_utils;
 
+const REQUEST_TIMEOUT_SECS: u64 = 120;
+
 const API_URL: &str = "https://api.openai.com/v1/chat/completions";
-const DEFAULT_MODEL: &str = "gpt-4o";
+pub const DEFAULT_MODEL: &str = "gpt-4o";
 const MAX_TOKENS: u32 = 1024;
 
 // ---------------------------------------------------------------------------
@@ -69,7 +72,10 @@ impl OpenAITranslator {
         Self {
             api_key: api_key.to_string(),
             model: if model.is_empty() { DEFAULT_MODEL.to_string() } else { model.to_string() },
-            client: reqwest::Client::new(),
+            client: reqwest::Client::builder()
+                .timeout(Duration::from_secs(REQUEST_TIMEOUT_SECS))
+                .build()
+                .expect("reqwest::Client の構築に失敗しました"),
         }
     }
 }

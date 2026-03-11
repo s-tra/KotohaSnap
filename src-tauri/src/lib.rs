@@ -44,6 +44,7 @@ pub fn run() {
             commands::get_version,
             commands::open_about,
             commands::open_settings,
+            commands::get_default_models,
             commands::fetch_models,
             commands::get_history,
             commands::clear_history,

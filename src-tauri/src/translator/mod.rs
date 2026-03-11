@@ -22,6 +22,22 @@ pub trait Translator: Send + Sync {
 }
 
 // ---------------------------------------------------------------------------
+// default_models
+// ---------------------------------------------------------------------------
+
+/// 各プロバイダのデフォルトモデル名を返す
+pub fn default_models() -> std::collections::HashMap<&'static str, &'static str> {
+    [
+        ("anthropic", anthropic::DEFAULT_MODEL),
+        ("openai",    openai::DEFAULT_MODEL),
+        ("groq",      groq::DEFAULT_MODEL),
+        ("google",    google::DEFAULT_MODEL),
+    ]
+    .into_iter()
+    .collect()
+}
+
+// ---------------------------------------------------------------------------
 // build_translator
 // ---------------------------------------------------------------------------
 
