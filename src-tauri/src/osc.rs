@@ -5,7 +5,8 @@ use rosc::{encoder, OscMessage, OscPacket, OscType};
 use crate::config::OscConfig;
 
 /// VRChat チャットボックスの最大文字数（Unicode コードポイント単位）。
-pub const CHATBOX_MAX_CHARS: usize = 144;
+/// pub const CHATBOX_MAX_CHARS: usize = 144;
+pub const CHATBOX_MAX_CHARS: usize = 120;
 
 /// OSC チャンク1件のコンテンツ部分の目標文字数。
 /// CHATBOX_MAX_CHARS より小さく設定することで、テキスト量にかかわらず

@@ -170,9 +170,34 @@ async fn process_screenshot(
     let osc_enabled = state.osc_enabled.load(Ordering::Relaxed);
     let translator = state.get_translator();
 
+    let (cancel_tx, cancel_rx) = tokio::sync::oneshot::channel::<()>();
+    {
+        let mut guard = state.cancel_sender.lock().expect("cancel lock poisoned");
+        *guard = Some(cancel_tx);
+    }
+
     tracing::info!("翻訳開始: {}", path.display());
     let _ = app_handle.emit("translation_start", path.to_string_lossy().as_ref());
-    let translated_text = translator.translate(&path, &prompt).await?;
+
+    let translate_result = tokio::select! {
+        r = translator.translate(&path, &prompt) => Some(r),
+        _ = cancel_rx => None,
+    };
+
+    // cancel_sender をクリア（translate が先に終わった場合も含む）
+    {
+        let mut guard = state.cancel_sender.lock().expect("cancel lock poisoned");
+        *guard = None;
+    }
+
+    let translated_text = match translate_result {
+        Some(r) => r?,
+        None => {
+            tracing::info!("翻訳がキャンセルされました: {}", path.display());
+            let _ = app_handle.emit("translation_cancelled", ());
+            return Ok(());
+        }
+    };
     tracing::info!("翻訳完了: {:?}", translated_text);
 
     // サムネイル生成（失敗してもエントリ自体は作成する）

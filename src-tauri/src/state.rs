@@ -22,6 +22,8 @@ pub struct AppState {
     pub history: Mutex<VecDeque<TranslationEntry>>,
     /// 設定変更時にウォッチャーへ再起動を通知する
     pub watcher_restart: Arc<Notify>,
+    /// 進行中の翻訳をキャンセルするための oneshot Sender
+    pub cancel_sender: Mutex<Option<tokio::sync::oneshot::Sender<()>>>,
 }
 
 impl AppState {
@@ -35,6 +37,7 @@ impl AppState {
             osc_enabled: AtomicBool::new(osc_enabled),
             history: Mutex::new(VecDeque::with_capacity(HISTORY_LIMIT)),
             watcher_restart: Arc::new(Notify::new()),
+            cancel_sender: Mutex::new(None),
             config: Mutex::new(config),
         }
     }

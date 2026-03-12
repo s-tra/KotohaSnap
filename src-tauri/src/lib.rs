@@ -49,6 +49,7 @@ pub fn run() {
             commands::get_history,
             commands::clear_history,
             commands::test_osc,
+            commands::cancel_translation,
             commands::open_file,
             commands::open_url,
             commands::set_font_size,

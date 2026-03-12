@@ -185,6 +185,20 @@ pub fn open_url(app: tauri::AppHandle, url: String) -> Result<(), String> {
 }
 
 // ---------------------------------------------------------------------------
+// 翻訳キャンセル
+// ---------------------------------------------------------------------------
+
+#[tauri::command]
+pub fn cancel_translation(state: State<'_, AppState>) -> Result<(), String> {
+    let mut guard = state.cancel_sender.lock().map_err(|e| e.to_string())?;
+    if let Some(tx) = guard.take() {
+        let _ = tx.send(());
+        tracing::info!("翻訳キャンセルをリクエストしました");
+    }
+    Ok(())
+}
+
+// ---------------------------------------------------------------------------
 // OSC テスト
 // ---------------------------------------------------------------------------
 

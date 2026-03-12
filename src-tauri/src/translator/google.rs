@@ -7,7 +7,8 @@ use serde::{Deserialize, Serialize};
 use super::Translator;
 use crate::image_utils;
 
-const REQUEST_TIMEOUT_SECS: u64 = 120;
+const REQUEST_TIMEOUT_SECS: u64 = 60;
+const CONNECT_TIMEOUT_SECS: u64 = 10;
 
 const API_BASE: &str = "https://generativelanguage.googleapis.com/v1beta/models";
 pub const DEFAULT_MODEL: &str = "gemini-flash-latest";
@@ -75,6 +76,7 @@ impl GoogleTranslator {
             api_key: api_key.to_string(),
             model: if model.is_empty() { DEFAULT_MODEL.to_string() } else { model.to_string() },
             client: reqwest::Client::builder()
+                .connect_timeout(Duration::from_secs(CONNECT_TIMEOUT_SECS))
                 .timeout(Duration::from_secs(REQUEST_TIMEOUT_SECS))
                 .build()
                 .expect("reqwest::Client の構築に失敗しました"),

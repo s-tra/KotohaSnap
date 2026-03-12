@@ -245,6 +245,26 @@ body {
 
 @keyframes spin { to { transform: rotate(360deg); } }
 
+.pending-cancel-btn {
+  margin-left: auto;
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  color: var(--muted);
+  font-size: 0.85em;
+  padding: 1px 8px;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.pending-cancel-btn:hover:not(:disabled) {
+  border-color: var(--danger);
+  color: var(--danger);
+}
+.pending-cancel-btn:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
 /* OSC Status Bar */
 .osc-status {
   padding: 5px 14px;
@@ -257,13 +277,33 @@ body {
 
 /* Error Bar */
 .error-bar {
-  padding: 8px 14px;
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 8px 10px 8px 14px;
   background: rgba(248,81,73,.15);
   border-top: 1px solid var(--danger);
   color: var(--danger);
   font-size: 11px;
   flex-shrink: 0;
+}
+.error-bar-msg {
+  flex: 1;
   word-break: break-word;
+}
+.error-bar-close {
+  flex-shrink: 0;
+  background: none;
+  border: none;
+  color: var(--danger);
+  font-size: 14px;
+  line-height: 1;
+  padding: 0 2px;
+  cursor: pointer;
+  opacity: 0.7;
+}
+.error-bar-close:hover {
+  opacity: 1;
 }
 
 

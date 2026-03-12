@@ -13,6 +13,8 @@ const settingsBtn     = document.getElementById('settings-btn');
 const clearBtn        = document.getElementById('clear-btn');
 const logList         = document.getElementById('log-list');
 const errorBar        = document.getElementById('error-bar');
+const errorBarMsg     = document.getElementById('error-bar-msg');
+const errorBarClose   = document.getElementById('error-bar-close');
 const oscStatusBar    = document.getElementById('osc-status');
 const fontDecreaseBtn = document.getElementById('font-decrease-btn');
 const fontIncreaseBtn = document.getElementById('font-increase-btn');
@@ -361,8 +363,13 @@ function buildPlaceholderEntry(imagePath) {
     <div class="pending-body">
       <span class="spinner"></span>
       <span class="pending-label">翻訳中...</span>
+      <button class="pending-cancel-btn">キャンセル</button>
     </div>
   `;
+  el.querySelector('.pending-cancel-btn').addEventListener('click', async (e) => {
+    e.currentTarget.disabled = true;
+    try { await invoke('cancel_translation'); } catch (_) {}
+  });
   return el;
 }
 
@@ -426,6 +433,11 @@ listen('translation_done', (event) => {
   playNotification();
 });
 
+listen('translation_cancelled', () => {
+  hidePlaceholder();
+  if (vlist.count === 0) showEmpty();
+});
+
 listen('watcher_error', (event) => {
   resetPlaceholder();
   if (vlist.count === 0) showEmpty();
@@ -472,9 +484,11 @@ function buildLogEntry(entry) {
 // UI ヘルパー
 // ---------------------------------------------------------------------------
 function showError(msg) {
-  errorBar.textContent = msg;
+  errorBarMsg.textContent = msg;
   errorBar.classList.remove('hidden');
 }
+
+errorBarClose.addEventListener('click', hideError);
 
 function hideError() {
   errorBar.classList.add('hidden');
