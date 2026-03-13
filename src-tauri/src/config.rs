@@ -110,10 +110,10 @@ impl Default for Config {
             api_keys: ApiKeys::default(),
             custom_provider: CustomProvider::default(),
             osc: OscConfig::default(),
-            osc_enabled: false,
+            osc_enabled: true,
             osc_prefix_enabled: true,
             sound_enabled: true,
-            is_enabled: false,
+            is_enabled: true,
             font_size: default_font_size(),
             watch_dir: default_watch_dir(),
             translation_prompt: default_prompt(),
@@ -125,7 +125,7 @@ impl Default for Config {
 // ヘルパー
 // ---------------------------------------------------------------------------
 
-fn default_provider() -> String { "google".to_string() }
+fn default_provider() -> String { "groq".to_string() }
 fn default_true() -> bool { true }
 fn default_chunk_interval() -> u64 { 4 }
 fn default_font_size() -> u8 { 13 }
