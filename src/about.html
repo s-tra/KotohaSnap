@@ -1,45 +1,73 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ja">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>KotohaSnapについて</title>
-  <link rel="stylesheet" href="styles.css">
-</head>
-<body>
-  <div class="about-app">
-    <div class="about-header">
-      <div class="about-icon"><img src="app-icon.png" alt="KotohaSnap icon" class="about-icon-img"></div>
-      <div class="about-header-text">
-        <h1 class="about-title">KotohaSnap</h1>
-        <p class="about-version" id="about-version">v0.0.0</p>
-      </div>
-    </div>
-    <p class="about-license">MIT License</p>
-    <p class="about-license">Copyright (c) 2026 s-tra</p>
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>KotohaSnapについて</title>
+        <link rel="stylesheet" href="styles.css" />
+    </head>
+    <body>
+        <div class="about-app">
+            <div class="about-header">
+                <div class="about-icon">
+                    <img
+                        src="app-icon.png"
+                        alt="KotohaSnap icon"
+                        class="about-icon-img"
+                    />
+                </div>
+                <div class="about-header-text">
+                    <h1 class="about-title">KotohaSnap</h1>
+                    <p class="about-version" id="about-version">v0.0.0</p>
+                </div>
+            </div>
+            <p class="about-license">MIT License</p>
+            <p class="about-license">Copyright (c) 2026 s-tra</p>
 
-    <!-- リンクエリア：href を編集してください -->
-    <div class="about-links">
-      <button class="about-link-btn" data-url="https://github.com/s-tra/KotohaSnap">
-        <img class="about-link-icon" src="https://github.com/favicon.ico" width="16" height="16" alt="GitHub"> GitHub
-      </button>
-      <button class="about-link-btn" data-url="https://x.com/_s_tra">
-        <img class="about-link-icon" src="https://x.com/favicon.ico" width="16" height="16" alt="X"> X (Twitter)
-      </button>
-    </div>
-  </div>
+            <!-- リンクエリア：href を編集してください -->
+            <div class="about-links">
+                <button
+                    class="about-link-btn"
+                    data-url="https://s-tra.booth.pm/items/8084080"
+                >
+                    <img
+                        class="about-link-icon"
+                        src="https://s-tra.booth.pm/favicon.ico"
+                        width="16"
+                        height="16"
+                        alt="Booth"
+                    />
+                    Booth
+                </button>
+                <button
+                    class="about-link-btn"
+                    data-url="https://github.com/s-tra/KotohaSnap"
+                >
+                    <img
+                        class="about-link-icon"
+                        src="https://github.com/favicon.ico"
+                        width="16"
+                        height="16"
+                        alt="GitHub"
+                    />
+                    GitHub
+                </button>
 
-  <script type="module">
-    const { invoke } = window.__TAURI__.core;
+            </div>
+        </div>
 
-    const version = await invoke('get_version');
-    document.getElementById('about-version').textContent = `v${version}`;
+        <script type="module">
+            const { invoke } = window.__TAURI__.core;
 
-    document.querySelectorAll('.about-link-btn').forEach(btn => {
-      btn.addEventListener('click', () => {
-        invoke('open_url', { url: btn.dataset.url });
-      });
-    });
-  </script>
-</body>
+            const version = await invoke("get_version");
+            document.getElementById("about-version").textContent =
+                `v${version}`;
+
+            document.querySelectorAll(".about-link-btn").forEach((btn) => {
+                btn.addEventListener("click", () => {
+                    invoke("open_url", { url: btn.dataset.url });
+                });
+            });
+        </script>
+    </body>
 </html>

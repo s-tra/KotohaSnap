@@ -809,7 +809,7 @@ select.input {
     gap: 8px;
     width: 100%;
     padding: 6px 12px;
-    background: var(--surface);
+    background: #e8eaed;
     border: 1px solid var(--border);
     border-radius: var(--radius);
     color: var(--accent);
@@ -822,7 +822,7 @@ select.input {
     text-align: left;
 }
 .about-link-btn:hover {
-    background: var(--surface2);
+    background: #d5d8dc;
     border-color: var(--accent);
 }
 
@@ -831,5 +831,4 @@ select.input {
     height: 16px;
     flex-shrink: 0;
     vertical-align: middle;
-    filter: invert(1);
 }
