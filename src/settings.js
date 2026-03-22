@@ -19,6 +19,7 @@ const keyOpenaiRow      = document.getElementById('key-openai-row');
 const keyGroqRow        = document.getElementById('key-groq-row');
 const keyGoogleRow      = document.getElementById('key-google-row');
 const modelInput        = document.getElementById('model-input');
+const modelClearBtn     = document.getElementById('model-clear-btn');
 const modelList         = document.getElementById('model-list');
 const modelHint         = document.getElementById('model-hint');
 const fetchModelsBtn    = document.getElementById('fetch-models-btn');
@@ -47,6 +48,21 @@ let currentProvider = 'anthropic';
 let DEFAULT_MODELS = {};
 
 // ---------------------------------------------------------------------------
+// モデル入力欄のクリアボタン
+// ---------------------------------------------------------------------------
+function updateModelClearBtn() {
+  modelClearBtn.hidden = modelInput.value === '';
+}
+
+modelInput.addEventListener('input', updateModelClearBtn);
+
+modelClearBtn.addEventListener('click', () => {
+  modelInput.value = '';
+  updateModelClearBtn();
+  modelInput.focus();
+});
+
+// ---------------------------------------------------------------------------
 // プロバイダ切り替え
 // ---------------------------------------------------------------------------
 function onProviderChange() {
@@ -67,6 +83,7 @@ function onProviderChange() {
   // 該当プロバイダのモデル値をロード
   modelInput.value = providerModels[currentProvider];
   updateModelHint();
+  updateModelClearBtn();
 }
 
 function updateModelHint() {
@@ -186,6 +203,7 @@ fetchModelsBtn.addEventListener('click', async () => {
     });
     // 取得したモデルに現在値が含まれていれば復元、なければ空のまま
     if (prev && models.includes(prev)) modelInput.value = prev;
+    updateModelClearBtn();
     modelInput.focus();
     showSaveStatus(`モデルを ${models.length} 件取得しました`, 'ok');
   } catch (e) {

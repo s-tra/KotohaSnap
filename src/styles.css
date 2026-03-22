@@ -266,6 +266,33 @@ body {
     display: none;
 }
 
+.log-entry-footer {
+    display: flex;
+    justify-content: flex-end;
+}
+
+.btn-resend-osc {
+    background: none;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    color: var(--muted);
+    cursor: pointer;
+    font-size: 13px;
+    line-height: 1;
+    padding: 2px 6px;
+    transition:
+        color 0.15s,
+        border-color 0.15s;
+}
+.btn-resend-osc:hover:not(:disabled) {
+    color: var(--accent);
+    border-color: var(--accent);
+}
+.btn-resend-osc:disabled {
+    opacity: 0.4;
+    cursor: default;
+}
+
 /* 翻訳中プレースホルダー */
 .log-entry-pending {
     border-style: dashed;
@@ -532,6 +559,34 @@ select.input {
 .model-row .btn {
     flex-shrink: 0;
     white-space: nowrap;
+}
+
+/* Input with clear button */
+.input-clearable {
+    position: relative;
+    flex: 1;
+    min-width: 0;
+}
+.input-clearable .input {
+    width: 100%;
+    padding-right: 24px;
+}
+.btn-clear-input {
+    position: absolute;
+    right: 6px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    color: var(--muted);
+    cursor: pointer;
+    font-size: 14px;
+    line-height: 1;
+    padding: 0;
+    transition: color 0.15s;
+}
+.btn-clear-input:hover {
+    color: var(--text-h);
 }
 
 /* =====================================================================

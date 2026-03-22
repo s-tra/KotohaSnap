@@ -87,13 +87,16 @@
         <div class="section-group">
           <p class="section-group-title">モデル</p>
           <div class="model-row">
-            <input
-              type="text"
-              id="model-input"
-              class="input"
-              list="model-list"
-              placeholder="空欄 = プロバイダのデフォルト"
-            >
+            <div class="input-clearable">
+              <input
+                type="text"
+                id="model-input"
+                class="input"
+                list="model-list"
+                placeholder="空欄 = プロバイダのデフォルト"
+              >
+              <button class="btn-clear-input" id="model-clear-btn" title="クリア" aria-label="クリア" hidden>×</button>
+            </div>
             <datalist id="model-list"></datalist>
             <button class="btn btn-secondary btn-sm" id="fetch-models-btn">モデルを取得</button>
           </div>

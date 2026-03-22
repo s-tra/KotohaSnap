@@ -29,11 +29,12 @@ pub fn save_config(
     }
     new_config.font_size = new_config.font_size.clamp(10, 20);
 
-    // トグル状態は設定画面のフォームに含まれないため、現在の実行時値を保持する
+    // 設定画面のフォームに含まれない項目は現在の実行時値を保持する
     {
         let current = state.config.lock().map_err(|e| e.to_string())?;
         new_config.is_enabled = current.is_enabled;
         new_config.osc_enabled = current.osc_enabled;
+        new_config.font_size = current.font_size;
     }
     config::save_config(&new_config).map_err(|e| e.to_string())?;
     state.apply_config(new_config);
@@ -220,6 +221,80 @@ pub fn reset_config(
     let _ = app.emit("config_saved", ());
     tracing::info!("設定をデフォルトにリセットしました");
     Ok(default)
+}
+
+// ---------------------------------------------------------------------------
+// OSC 再送信
+// ---------------------------------------------------------------------------
+
+#[tauri::command]
+pub async fn resend_osc(
+    app: tauri::AppHandle,
+    state: State<'_, AppState>,
+    text: String,
+) -> Result<(), String> {
+    let (osc_config, osc_prefix_enabled, chunk_interval_secs) = {
+        let config = state.config.lock().map_err(|e| e.to_string())?;
+        (
+            config.osc.clone(),
+            config.osc_prefix_enabled,
+            config.osc.chunk_interval_secs,
+        )
+    };
+
+    let (osc_tx, osc_rx) = tokio::sync::oneshot::channel::<()>();
+    {
+        let mut g = state.osc_cancel_sender.lock().map_err(|e| e.to_string())?;
+        *g = Some(osc_tx);
+    }
+
+    #[derive(serde::Serialize, Clone)]
+    struct OscChunkProgress {
+        current: usize,
+        total: usize,
+    }
+
+    tokio::spawn(async move {
+        use std::net::UdpSocket;
+        use std::time::Duration;
+        use tokio::time::sleep;
+
+        let socket = match UdpSocket::bind("0.0.0.0:0") {
+            Ok(s) => s,
+            Err(e) => {
+                tracing::error!("UDP ソケットのバインドに失敗しました: {e}");
+                let _ = app.emit("watcher_error", e.to_string());
+                return;
+            }
+        };
+        let chunks = osc::split_for_osc(&text, osc_prefix_enabled);
+        let total = chunks.len();
+        let mut osc_rx = osc_rx;
+        for (i, chunk) in chunks.iter().enumerate() {
+            let current = i + 1;
+            if let Err(e) = osc::send_to_chatbox(&osc_config, chunk, &socket) {
+                tracing::error!("OSC 再送信エラー (チャンク {}/{}): {e}", current, total);
+                let _ = app.emit("watcher_error", e.to_string());
+                return;
+            }
+            if total > 1 {
+                let _ = app.emit("osc_chunk_progress", OscChunkProgress { current, total });
+            }
+            if current < total {
+                tokio::select! {
+                    _ = sleep(Duration::from_secs(chunk_interval_secs)) => {}
+                    _ = &mut osc_rx => {
+                        tracing::info!("OSC 再送信がキャンセルされました ({}/{})", current, total);
+                        let _ = app.emit("osc_cancelled", ());
+                        return;
+                    }
+                }
+            }
+        }
+        tracing::info!("OSC 再送信完了");
+    });
+
+    Ok(())
 }
 
 // ---------------------------------------------------------------------------

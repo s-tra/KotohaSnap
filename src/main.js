@@ -490,7 +490,23 @@ function buildLogEntry(entry) {
       <div class="log-entry-text">${escHtml(entry.translated_text)}</div>
       <img class="log-entry-thumb" src="${imgSrc}" alt="" loading="lazy" data-path="${escHtml(entry.image_path)}" title="クリックで画像を開く">
     </div>
+    <div class="log-entry-footer">
+      <button class="btn-resend-osc" title="OSCで再送信">💬</button>
+    </div>
   `;
+
+  el.querySelector('.btn-resend-osc').addEventListener('click', async (e) => {
+    const btn = e.currentTarget;
+    btn.disabled = true;
+    try {
+      await invoke('resend_osc', { text: entry.translated_text });
+    } catch (err) {
+      showError(`OSC再送信に失敗しました: ${err}`);
+    } finally {
+      btn.disabled = false;
+    }
+  });
+
   return el;
 }
 
