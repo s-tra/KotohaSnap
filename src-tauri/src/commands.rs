@@ -151,6 +151,7 @@ pub async fn fetch_models(
         "openai"    => fetch_openai_compat_models(crate::translator::openai::MODELS_URL, &api_key).await,
         "groq"      => fetch_openai_compat_models(crate::translator::groq::MODELS_URL, &api_key).await,
         "google"    => fetch_google_models(&api_key).await,
+        "xai"       => fetch_openai_compat_models(crate::translator::xai::MODELS_URL, &api_key).await,
         "custom"    => {
             let url = models_url
                 .filter(|u| !u.is_empty())

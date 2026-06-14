@@ -14,10 +14,12 @@ const keyAnthropic      = document.getElementById('key-anthropic');
 const keyOpenai         = document.getElementById('key-openai');
 const keyGroq           = document.getElementById('key-groq');
 const keyGoogle         = document.getElementById('key-google');
+const keyXai            = document.getElementById('key-xai');
 const keyAnthropicRow   = document.getElementById('key-anthropic-row');
 const keyOpenaiRow      = document.getElementById('key-openai-row');
 const keyGroqRow        = document.getElementById('key-groq-row');
 const keyGoogleRow      = document.getElementById('key-google-row');
+const keyXaiRow         = document.getElementById('key-xai-row');
 const modelInput        = document.getElementById('model-input');
 const modelClearBtn     = document.getElementById('model-clear-btn');
 const modelList         = document.getElementById('model-list');
@@ -41,7 +43,7 @@ const resetConfigBtn    = document.getElementById('reset-config-btn');
 let currentOscEnabled = true;
 
 // プロバイダごとのモデル値（切り替え時に保持）
-const providerModels = { anthropic: '', openai: '', groq: '', google: '', custom: '' };
+const providerModels = { anthropic: '', openai: '', groq: '', google: '', xai: '', custom: '' };
 let currentProvider = 'anthropic';
 
 // プロバイダごとのデフォルトモデル（ヒント表示用）。バックエンドから起動時に取得する
@@ -79,6 +81,7 @@ function onProviderChange() {
   keyOpenaiRow.style.display    = currentProvider === 'openai'    ? '' : 'none';
   keyGroqRow.style.display      = currentProvider === 'groq'      ? '' : 'none';
   keyGoogleRow.style.display    = currentProvider === 'google'    ? '' : 'none';
+  keyXaiRow.style.display       = currentProvider === 'xai'       ? '' : 'none';
 
   // 該当プロバイダのモデル値をロード
   modelInput.value = providerModels[currentProvider];
@@ -112,12 +115,14 @@ async function loadConfig() {
     providerModels.openai    = config.models?.openai    ?? '';
     providerModels.groq      = config.models?.groq      ?? '';
     providerModels.google    = config.models?.google    ?? '';
+    providerModels.xai       = config.models?.xai       ?? '';
     providerModels.custom    = config.models?.custom    ?? '';
 
     keyAnthropic.value       = config.api_keys?.anthropic ?? '';
     keyOpenai.value          = config.api_keys?.openai    ?? '';
     keyGroq.value            = config.api_keys?.groq      ?? '';
     keyGoogle.value          = config.api_keys?.google    ?? '';
+    keyXai.value             = config.api_keys?.xai       ?? '';
     customDisplayName.value  = config.custom_provider?.display_name ?? '';
     customApiUrl.value       = config.custom_provider?.api_url      ?? '';
     customApiKey.value       = config.custom_provider?.api_key      ?? '';
@@ -156,6 +161,7 @@ function collectConfig() {
       openai:    keyOpenai.value,
       groq:      keyGroq.value,
       google:    keyGoogle.value,
+      xai:       keyXai.value,
     },
     custom_provider: {
       display_name: customDisplayName.value.trim(),
@@ -189,7 +195,7 @@ fetchModelsBtn.addEventListener('click', async () => {
   const provider = providerSel.value;
   const apiKey = provider === 'custom'
     ? customApiKey.value
-    : { anthropic: keyAnthropic.value, openai: keyOpenai.value, groq: keyGroq.value, google: keyGoogle.value }[provider] ?? '';
+    : { anthropic: keyAnthropic.value, openai: keyOpenai.value, groq: keyGroq.value, google: keyGoogle.value, xai: keyXai.value }[provider] ?? '';
   const modelsUrl = provider === 'custom' ? customModelsUrl.value.trim() : null;
 
   try {

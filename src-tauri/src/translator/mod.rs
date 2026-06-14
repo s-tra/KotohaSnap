@@ -7,6 +7,7 @@ pub mod custom;
 pub mod google;
 pub mod groq;
 pub mod openai;
+pub mod xai;
 
 // ---------------------------------------------------------------------------
 // Translator trait
@@ -32,6 +33,7 @@ pub fn default_models() -> std::collections::HashMap<&'static str, &'static str>
         ("openai",    openai::DEFAULT_MODEL),
         ("groq",      groq::DEFAULT_MODEL),
         ("google",    google::DEFAULT_MODEL),
+        ("xai",       xai::DEFAULT_MODEL),
     ]
     .into_iter()
     .collect()
@@ -49,6 +51,7 @@ pub fn build_translator(config: &crate::config::Config) -> Arc<dyn Translator> {
         "openai"  => Arc::new(openai::OpenAITranslator::new(&config.api_keys.openai, &models.openai)),
         "groq"    => Arc::new(groq::GroqTranslator::new(&config.api_keys.groq, &models.groq)),
         "google"  => Arc::new(google::GoogleTranslator::new(&config.api_keys.google, &models.google)),
+        "xai"     => Arc::new(xai::XaiTranslator::new(&config.api_keys.xai, &models.xai)),
         "custom" => {
             let cp = &config.custom_provider;
             Arc::new(custom::CustomTranslator::new(

@@ -50,6 +50,8 @@ pub struct ProviderModels {
     #[serde(default)]
     pub google: String,
     #[serde(default)]
+    pub xai: String,
+    #[serde(default)]
     pub custom: String,
 }
 
@@ -63,6 +65,8 @@ pub struct ApiKeys {
     pub groq: String,
     #[serde(default)]
     pub google: String,
+    #[serde(default)]
+    pub xai: String,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
@@ -129,7 +133,7 @@ impl Default for Config {
 // ヘルパー
 // ---------------------------------------------------------------------------
 
-fn default_provider() -> String { "groq".to_string() }
+fn default_provider() -> String { "google".to_string() }
 fn default_true() -> bool { true }
 fn default_chunk_interval() -> u64 { 4 }
 fn default_font_size() -> u8 { 13 }
