@@ -134,6 +134,11 @@ pub fn get_default_models() -> std::collections::HashMap<&'static str, &'static 
     crate::translator::default_models()
 }
 
+#[tauri::command]
+pub fn get_default_prompt() -> String {
+    crate::config::default_prompt()
+}
+
 // ---------------------------------------------------------------------------
 // モデル一覧取得
 // ---------------------------------------------------------------------------

@@ -152,7 +152,7 @@ fn default_watch_dir() -> PathBuf {
         .join("VRChat")
 }
 
-fn default_prompt() -> String {
+pub fn default_prompt() -> String {
     "この画像に含まれるテキストを日本語に翻訳してください。翻訳結果のみを返してください。説明や補足は不要です。周辺部に映りこんだ断片的な文字列や不鮮明なものは無視してください。テキストが存在しない場合は「テキストなし」とだけ返してください。".to_string()
 }
 

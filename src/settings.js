@@ -35,6 +35,7 @@ const oscChunkInterval  = document.getElementById('osc-chunk-interval');
 const oscPrefixChk      = document.getElementById('osc-prefix-enabled');
 const soundEnabledChk   = document.getElementById('sound-enabled');
 const prompt            = document.getElementById('prompt');
+const resetPromptBtn    = document.getElementById('reset-prompt-btn');
 const saveBtn           = document.getElementById('save-btn');
 const saveStatus        = document.getElementById('save-status');
 const resetConfigBtn    = document.getElementById('reset-config-btn');
@@ -42,12 +43,28 @@ const resetConfigBtn    = document.getElementById('reset-config-btn');
 // 設定保存時に osc_enabled を保持するための変数
 let currentOscEnabled = true;
 
+// ダーティ状態（未保存の変更あり）管理
+let isDirty = false;
+
+function markDirty() {
+  isDirty = true;
+  clearTimeout(showSaveStatus._timer);
+  saveStatus.textContent = '未保存の変更があります';
+  saveStatus.className = 'save-status warn';
+  saveStatus.classList.remove('hidden');
+}
+
+function clearDirty() {
+  isDirty = false;
+}
+
 // プロバイダごとのモデル値（切り替え時に保持）
 const providerModels = { anthropic: '', openai: '', groq: '', google: '', xai: '', custom: '' };
 let currentProvider = 'anthropic';
 
 // プロバイダごとのデフォルトモデル（ヒント表示用）。バックエンドから起動時に取得する
 let DEFAULT_MODELS = {};
+let defaultPrompt = '';
 
 // ---------------------------------------------------------------------------
 // モデル入力欄のクリアボタン
@@ -62,6 +79,7 @@ modelClearBtn.addEventListener('click', () => {
   modelInput.value = '';
   updateModelClearBtn();
   modelInput.focus();
+  markDirty();
 });
 
 // ---------------------------------------------------------------------------
@@ -104,11 +122,13 @@ providerSel.addEventListener('change', onProviderChange);
 // ---------------------------------------------------------------------------
 async function loadConfig() {
   try {
-    const [config, defaultModels] = await Promise.all([
+    const [config, defaultModels, fetchedDefaultPrompt] = await Promise.all([
       invoke('get_config'),
       invoke('get_default_models'),
+      invoke('get_default_prompt'),
     ]);
     DEFAULT_MODELS = defaultModels;
+    defaultPrompt = fetchedDefaultPrompt;
 
     // プロバイダごとのモデル値を先にロード
     providerModels.anthropic = config.models?.anthropic ?? '';
@@ -227,6 +247,7 @@ saveBtn.addEventListener('click', async () => {
   saveBtn.disabled = true;
   try {
     await invoke('save_config', { newConfig: collectConfig() });
+    isDirty = false;
     showSaveStatus('設定を保存しました', 'ok');
   } catch (e) {
     showSaveStatus(`保存失敗: ${e}`, 'error');
@@ -245,7 +266,7 @@ browseDirBtn.addEventListener('click', async () => {
     title: 'スクリーンショットフォルダを選択',
     defaultPath: watchDir.value || undefined,
   });
-  if (selected) watchDir.value = selected;
+  if (selected) { watchDir.value = selected; markDirty(); }
 });
 
 // ---------------------------------------------------------------------------
@@ -264,6 +285,14 @@ testOscBtn.addEventListener('click', async () => {
 });
 
 // ---------------------------------------------------------------------------
+// プロンプトをデフォルトに戻す
+// ---------------------------------------------------------------------------
+resetPromptBtn.addEventListener('click', () => {
+  prompt.value = defaultPrompt;
+  markDirty();
+});
+
+// ---------------------------------------------------------------------------
 // UI ヘルパー
 // ---------------------------------------------------------------------------
 function showSaveStatus(msg, type) {
@@ -271,7 +300,25 @@ function showSaveStatus(msg, type) {
   saveStatus.className = `save-status ${type}`;
   saveStatus.classList.remove('hidden');
   clearTimeout(showSaveStatus._timer);
-  showSaveStatus._timer = setTimeout(() => saveStatus.classList.add('hidden'), 4000);
+  if (type !== 'warn') {
+    showSaveStatus._timer = setTimeout(() => saveStatus.classList.add('hidden'), 4000);
+  }
+}
+
+// ---------------------------------------------------------------------------
+// ダーティリスナー登録（loadConfig 完了後に一度だけ呼ぶ）
+// ---------------------------------------------------------------------------
+function attachDirtyListeners() {
+  const inputEls = [
+    customDisplayName, customApiUrl, customApiKey, customModelsUrl,
+    keyAnthropic, keyOpenai, keyGroq, keyGoogle, keyXai,
+    modelInput, watchDir, oscHost, oscPort, oscAddress, oscChunkInterval,
+    prompt,
+  ];
+  for (const el of inputEls) el.addEventListener('input', markDirty);
+
+  const changeEls = [providerSel, oscPrefixChk, soundEnabledChk];
+  for (const el of changeEls) el.addEventListener('change', markDirty);
 }
 
 // ---------------------------------------------------------------------------
@@ -288,6 +335,7 @@ resetConfigBtn.addEventListener('click', async () => {
   try {
     await invoke('reset_config');
     await loadConfig();
+    clearDirty();
     showSaveStatus('設定をリセットしました', 'ok');
   } catch (e) {
     showSaveStatus(`リセット失敗: ${e}`, 'error');
@@ -300,3 +348,4 @@ resetConfigBtn.addEventListener('click', async () => {
 // 初期化
 // ---------------------------------------------------------------------------
 await loadConfig();
+attachDirtyListeners();
